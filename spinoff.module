@@ -161,6 +161,14 @@ function spinoff_node_form_submit($form, &$form_state) {
 
   $node = node_load($form_state['nid']);
 
+  $command = spinoff_build_command($node);
+
+  exec($command);
+
+}
+
+function spinoff_build_command($node) {
+
   $script_name = variable_get('spinoff_script_path_' . $node->type, '');
 
   $pieces = array();
@@ -174,14 +182,13 @@ function spinoff_node_form_submit($form, &$form_state) {
 
   $arguments = implode(' ', array_map(function($piece) { return implode(' ', $piece); }, $pieces));
 
-  $command = $script_name . ' ' . $arguments;
+  $command = 'nohup ' . $script_name . ' ' . $arguments . ' > /dev/null &';
 
-  $command = 'nohup ' . $command;
-  $command .= ' > /dev/null &';
+  return $command;
 
-  watchdog('spinoff', $command);
+}
 
-  exec($command);
+
 }
 
 function spinoff_log($node) {
