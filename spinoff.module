@@ -42,12 +42,20 @@ function spinoff_field_info_alter(&$info) {
 function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
   $instance = $form['#instance'];
   if ($instance['entity_type'] == 'node' && spinoff_is_spinoff_node_type($instance['bundle']) && !$form['#field']['locked']) {
-    $form['instance']['settings']['spinoff_arg_name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Command Line Argument Name'),
-      '#description' => t('Please include dashes'),
-      '#default_value' => (!empty($instance['settings']['spinoff_arg_name'])) ? $instance['settings']['spinoff_arg_name'] : '',
+    $form['instance']['settings']['spinoff'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Spinoff settings'),
+      '#collapsible' => FALSE,
+      '#tree' => TRUE,
+      '#parents' => array('instance', 'settings'),
       '#weight' => 9999,
+    );
+    $form['instance']['settings']['spinoff']['spinoff_arg_name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Command line argument name'),
+      '#description' => t('Please include dashes'),
+      '#default_value' => (isset($instance['settings']['spinoff_arg_name'])) ? $instance['settings']['spinoff_arg_name'] : '',
+      '#required' => TRUE,
     );
   }
 }
