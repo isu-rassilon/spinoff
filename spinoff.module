@@ -36,22 +36,6 @@ function spinoff_menu_alter(&$items) {
 }
 
 /**
- * Implements hook_trigger_info().
- */
-function spinoff_trigger_info() {
-  return array(
-    'spinoff' => array(
-      'spinoff_job_complete' => array(
-        'label' => t('After the process completes.'),
-      ),
-      'spinoff_job_error' => array(
-        'label' => t('After the process errors out.'),
-      ),
-    ),
-  );
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  */
 function spinoff_form_node_type_form_alter(&$form, $form_state, $form_id) {
@@ -121,35 +105,11 @@ function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form
 /**
  * Menu callback
  */
-function spinoff_jobcomplete_callback($node, $error) {
+function spinoff_jobcomplete_callback($node, $return_code) {
 
-  if ($error == 1) {
+  // TODO: record this in a node field
 
-    // Trigger actions for 'spinoff_job_error'
-    $actions = trigger_get_assigned_actions('spinoff_job_error');
-
-    $context = array(
-      'group' => 'spinoff',
-      'hook' => 'spinoff_job_error'
-    );
-    actions_do(array_keys($actions), $node, $context);
-
-    watchdog('spinoff', t('Job for %type node %nid errored out'), array('%type' => $node->type, '%nid' => $node->nid), WATCHDOG_ERROR);
-
-  } else {
-
-    // Trigger actions for 'spinoff_job_complete'
-    $actions = trigger_get_assigned_actions('spinoff_job_complete');
-
-    $context = array(
-      'group' => 'spinoff',
-      'hook' => 'spinoff_job_complete'
-    );
-    actions_do(array_keys($actions), $node, $context);
-
-    watchdog('spinoff', t('Job for %type node %nid completed successfully'), array('%type' => $node->type, '%nid' => $node->nid));
-
-  }
+  rules_invoke_event('spinoff_jobcomplete', $node, (int) $return_code);
 
   drupal_exit();
 
