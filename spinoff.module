@@ -40,7 +40,7 @@ function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form
       '#type' => 'textfield',
       '#title' => t('Command Line Argument Name'),
       '#description' => t('Please include dashes'),
-      '#default_value' => '',
+      '#default_value' => (!empty($instance['settings']['spinoff_arg_name'])) ? $instance['settings']['spinoff_arg_name'] : '',
       '#weight' => 9999,
     );
   }
