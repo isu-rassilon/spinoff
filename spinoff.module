@@ -1,11 +1,44 @@
 <?php
 
 /**
+ * Implements hook_menu().
+ */
+function spinoff_menu() {
+
+  $items['spinoff/jobcomplete/%node/%'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 2),
+    'page callback' => 'spinoff_jobcomplete_callback',
+    'page arguments' => array(2, 3),
+  );
+
+  return $items;
+
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function spinoff_menu_alter(&$items) {
   // Don't allow access to the node list page at /node
   $items['node']['access callback'] = FALSE;
+}
+
+/**
+ * Implements hook_trigger_info().
+ */
+function spinoff_trigger_info() {
+  return array(
+    'spinoff' => array(
+      'spinoff_job_complete' => array(
+        'label' => t('After the process completes.'),
+      ),
+      'spinoff_job_error' => array(
+        'label' => t('After the process errors out.'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -73,6 +106,43 @@ function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form
       '#required' => TRUE,
     );
   }
+}
+
+/**
+ * Menu callback
+ */
+function spinoff_jobcomplete_callback($node, $error) {
+
+  if ($error == 1) {
+
+    // Trigger actions for 'spinoff_job_error'
+    $actions = trigger_get_assigned_actions('spinoff_job_error');
+
+    $context = array(
+      'group' => 'spinoff',
+      'hook' => 'spinoff_job_error'
+    );
+    actions_do(array_keys($actions), $node, $context);
+
+    watchdog('spinoff', t('Job for %type node %nid errored out'), array('%type' => $node->type, '%nid' => $node->nid), WATCHDOG_ERROR);
+
+  } else {
+
+    // Trigger actions for 'spinoff_job_complete'
+    $actions = trigger_get_assigned_actions('spinoff_job_complete');
+
+    $context = array(
+      'group' => 'spinoff',
+      'hook' => 'spinoff_job_complete'
+    );
+    actions_do(array_keys($actions), $node, $context);
+
+    watchdog('spinoff', t('Job for %type node %nid completed successfully'), array('%type' => $node->type, '%nid' => $node->nid));
+
+  }
+
+  drupal_exit();
+
 }
 
 function spinoff_is_spinoff_node_type($type) {
