@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implements hook_rules_event_info().
+ */
 function spinoff_rules_event_info() {
   $events = array(
     'spinoff_jobcomplete' => array(
