@@ -206,6 +206,47 @@ function spinoff_log_callback($node) {
   return $return;
 
 }
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter()
+ */
+function spinoff_form_node_form_alter(&$form, &$form_state, $form_id) {
+  if (!isset($form_state['node']->nid) && spinoff_is_spinoff_node_type($form_state['node']->type)) {
+    $form['actions']['submit']['#submit'][] = 'spinoff_node_form_submit';
+  }
+}
+
+/**
+ * Submit handler
+ */
+function spinoff_node_form_submit($form, &$form_state) {
+
+  $node = node_load($form_state['nid']);
+
+  $script_name = variable_get('spinoff_script_path_' . $node->type, '');
+
+  $pieces = array();
+
+  foreach (field_info_instances('node', $node->type) as $field_name => $instance) {
+    if (!empty($instance['settings']['spinoff_arg_name'])) {
+      // TODO: it's not always value
+      $pieces[] = array($instance['settings']['spinoff_arg_name'], escapeshellarg($node->{$field_name}[LANGUAGE_NONE][0]['value']));
+    }
+  }
+
+  $arguments = implode(' ', array_map(function($piece) { return implode(' ', $piece); }, $pieces));
+
+  $command = $script_name . ' ' . $arguments;
+
+  $command = 'nohup ' . $command;
+  $command .= ' > /dev/null &';
+
+  watchdog('spinoff', $command);
+
+  exec($command);
+
+}
+
 function spinoff_is_spinoff_node_type($type) {
   return !empty(variable_get('spinoff_script_path_' . $type, ''));
 }
