@@ -1,0 +1,14 @@
+.spinoff-collapsible-container .spinoff-toggle {
+  font-weight: normal;
+}
+
+.spinoff-collapsible-container .spinoff-collapsible-handle {
+  cursor: pointer;
+}
+
+.spinoff-collapsible-container .spinoff-toggle-collapsed {
+}
+
+#spinoff-status { margin: 0; }
+#spinoff-status span { font-weight: normal; }
+#spinoff-status-wrapper h4 { clear: left; }
