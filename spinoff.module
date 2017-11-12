@@ -41,7 +41,7 @@ function spinoff_field_info_alter(&$info) {
  */
 function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
   $instance = $form['#instance'];
-  if ($instance['entity_type'] == 'node' && !$form['#field']['locked']) {
+  if ($instance['entity_type'] == 'node' && spinoff_is_spinoff_node_type($instance['bundle']) && !$form['#field']['locked']) {
     $form['instance']['settings']['spinoff_arg_name'] = array(
       '#type' => 'textfield',
       '#title' => t('Command Line Argument Name'),
@@ -50,4 +50,8 @@ function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form
       '#weight' => 9999,
     );
   }
+}
+
+function spinoff_is_spinoff_node_type($type) {
+  return !empty(variable_get('spinoff_script_path_' . $type, ''));
 }
