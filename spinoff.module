@@ -3,7 +3,7 @@
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function spinoff_form_node_type_form_alter(&$form, $form_state) {
+function spinoff_form_node_type_form_alter(&$form, $form_state, $form_id) {
   if (isset($form['type'])) {
     $form['spinoff'] = array(
       '#type' => 'fieldset',
