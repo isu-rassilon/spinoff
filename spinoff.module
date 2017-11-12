@@ -5,6 +5,16 @@
  */
 function spinoff_menu() {
 
+  $items['spinoff/ajax/log/%node'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 3),
+    'load arguments' => array(NULL, TRUE),
+    'page callback' => 'spinoff_log_callback',
+    'page arguments' => array(3),
+    'delivery callback' => 'ajax_deliver',
+  );
+
   $items['spinoff/jobcomplete/%node/%'] = array(
     'type' => MENU_CALLBACK,
     'access callback' => 'node_access',
@@ -145,6 +155,62 @@ function spinoff_jobcomplete_callback($node, $error) {
 
 }
 
+/**
+ * Callback polled by the results page that updates the displayed log
+ */
+function spinoff_log_callback($node) {
+
+  // TODO: figure out where to get these
+  $job_complete = FALSE;
+  $job_error = TRUE;
+  $job_log = array('Internal error occurred. Please try submitting the task again or try again later if the problem persists.');
+
+  $log_filepath = spinoff_get_log_filepath($node);
+
+  if (file_exists($log_filepath) && $log_file_lines = file($log_filepath)) {
+
+    $log_file_line_count = count($log_file_lines);
+
+    if($log_file_line_count > 10) {
+
+      $job_log = array_slice($log_file_lines, $log_file_line_count - 10, 10);
+      array_unshift($job_log, '...');
+
+    } else {
+
+      $job_log = $log_file_lines;
+
+    }
+
+  }
+
+  $return = array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      array(
+        'command' => 'insert',
+        'data' => implode('<br />', $job_log),
+        'method' => 'html',
+        'selector' => '#spinoff-log',
+      ),
+      array(
+        'command' => 'spinoff_ajax_log_event_response',
+        'data' => array(
+          'job_complete' => $job_complete,
+          'job_error' => $job_error
+        ),
+      ),
+    ),
+  );
+
+  return $return;
+
+}
 function spinoff_is_spinoff_node_type($type) {
   return !empty(variable_get('spinoff_script_path_' . $type, ''));
 }
+
+function spinoff_get_log_filepath($node) {
+  return sprintf(variable_get('spinoff_log_path_' . $node->type, '%d'), $node->nid);
+}
+
