@@ -21,6 +21,12 @@ function spinoff_form_node_type_form_alter(&$form, $form_state, $form_id) {
       '#description' => t('Full path to the script to run'),
       '#default_value' => variable_get('spinoff_script_path_' . $form['#node_type']->type, ''),
     );
+    $form['spinoff']['spinoff_log_path'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Log file path'),
+      '#description' => t('Include a %d placeholder for the node ID'),
+      '#default_value' => variable_get('spinoff_log_path_' . $form['#node_type']->type, ''),
+    );
   }
 }
 
@@ -32,6 +38,7 @@ function spinoff_field_info_alter(&$info) {
     $field_type_info += array('instance_settings' => array());
     $field_type_info['instance_settings'] += array(
       'spinoff_arg_name' => '',
+      'spinoff_log_path' => '',
     );
   }
 }
