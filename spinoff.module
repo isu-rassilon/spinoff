@@ -201,7 +201,7 @@ function spinoff_build_command($node) {
 
   $arguments = implode(' ', array_map(function($piece) { return implode(' ', $piece); }, $pieces));
 
-  $command = 'nohup ' . $script_name . ' ' . $arguments . ' > ' . spinoff_get_log_filepath($node) . ' &';
+  $command = 'nohup ' . $script_name . ' ' . $arguments . ' --logpath ' . spinoff_get_log_filepath($node) . ' > /dev/null &';
 
   return $command;
 
