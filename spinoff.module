@@ -223,7 +223,6 @@ function spinoff_preprocess_node(&$variables) {
     drupal_add_js(drupal_get_path('module', 'spinoff') . '/js/spinoff_node.js');
     drupal_add_css(drupal_get_path('module', 'spinoff') . '/css/spinoff.css');
 
-
     $status_vars = array();
 
     list($status_vars['job_complete'], $status_vars['job_error'], $status_vars['job_log']) = spinoff_log($node);
@@ -245,14 +244,16 @@ function spinoff_preprocess_node(&$variables) {
 
       $base = 'spinoff-status';
 
-      $setting = array('ajax' => array(
-        $base => array(
-          'selector' => '#' .  $base,
-          'url' => url('spinoff/ajax/log/' . $variables['nid']),
-          'event' => 'spinoffAjaxLogEvent',
-          'progress' => array('type' => 'throbber'),
+      $setting = array(
+        'ajax' => array(
+          $base => array(
+            'selector' => '#' .  $base,
+            'url' => url('spinoff/ajax/log/' . $variables['nid']),
+            'event' => 'spinoffAjaxLogEvent',
+            'progress' => array('type' => 'throbber'),
+          ),
         ),
-      ));
+      );
       drupal_add_js($setting, 'setting');
       drupal_add_js('jQuery.extend(true, Drupal.settings, {"ajax": {"' . $base . '": {"timer": setInterval(function() { jQuery("#' . $base . '").trigger("spinoffAjaxLogEvent")}, 3000)}}});', array('type' => 'inline', 'scope' => 'footer', 'weight' => 1000));
 
