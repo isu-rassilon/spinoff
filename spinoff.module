@@ -28,7 +28,7 @@ function spinoff_menu() {
 }
 
 /**
- * Implements hook_theme()
+ * Implements hook_theme().
  */
 function spinoff_theme($existing, $type, $theme, $path) {
   return array(
@@ -41,8 +41,8 @@ function spinoff_theme($existing, $type, $theme, $path) {
         'status' => '',
       ),
       'template' => 'spinoff-status',
-      'path' => drupal_get_path('module', 'spinoff') . '/templates'
-    )
+      'path' => drupal_get_path('module', 'spinoff') . '/templates',
+    ),
   );
 }
 
@@ -154,7 +154,7 @@ function spinoff_log_callback($node) {
         'command' => 'spinoff_ajax_log_event_response',
         'data' => array(
           'job_complete' => $job_complete,
-          'job_error' => $job_error
+          'job_error' => $job_error,
         ),
       ),
     ),
@@ -165,7 +165,7 @@ function spinoff_log_callback($node) {
 }
 
 /**
- * Implements hook_form_BASE_FORM_ID_alter()
+ * Implements hook_form_BASE_FORM_ID_alter().
  */
 function spinoff_form_node_form_alter(&$form, &$form_state, $form_id) {
   if (!isset($form_state['node']->nid) && spinoff_is_spinoff_node_type($form_state['node']->type)) {
