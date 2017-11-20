@@ -1,5 +1,8 @@
 <?php
 
+define('SPINOFF_LOG_DIR', 'private://spinoff');
+define('SPINOFF_LOG_FILE', SPINOFF_LOG_DIR . '/%d.log');
+
 /**
  * Implements hook_menu().
  */
@@ -75,12 +78,6 @@ function spinoff_form_node_type_form_alter(&$form, $form_state, $form_id) {
       '#description' => t('Full path to the script to run'),
       '#default_value' => variable_get('spinoff_script_path_' . $form['#node_type']->type, ''),
     );
-    $form['spinoff']['spinoff_log_path'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Log file path'),
-      '#description' => t('Include a %d placeholder for the node ID'),
-      '#default_value' => variable_get('spinoff_log_path_' . $form['#node_type']->type, ''),
-    );
   }
 }
 
@@ -92,7 +89,6 @@ function spinoff_field_info_alter(&$info) {
     $field_type_info += array('instance_settings' => array());
     $field_type_info['instance_settings'] += array(
       'spinoff_arg_name' => '',
-      'spinoff_log_path' => '',
     );
   }
 }
@@ -201,7 +197,7 @@ function spinoff_build_command($node) {
 
   $arguments = implode(' ', array_map(function($piece) { return implode(' ', $piece); }, $pieces));
 
-  $command = 'nohup ' . $script_name . ' ' . $arguments . ' --logpath ' . spinoff_get_log_filepath($node) . ' > /dev/null &';
+  $command = 'nohup ' . $script_name . ' ' . $arguments . ' < /dev/null > /dev/null 2>' . sprintf(SPINOFF_LOG_FILE, $node->nid) . ' &';
 
   return $command;
 
@@ -270,7 +266,7 @@ function spinoff_log($node) {
   $job_error = TRUE;
   $job_log = array('Internal error occurred. Please try submitting the task again or try again later if the problem persists.');
 
-  $log_filepath = spinoff_get_log_filepath($node);
+  $log_filepath = sprintf(SPINOFF_LOG_FILE, $node->nid);
 
   if (file_exists($log_filepath) && $log_file_lines = file($log_filepath)) {
 
@@ -297,8 +293,3 @@ function spinoff_is_spinoff_node_type($type) {
   $script_path = variable_get('spinoff_script_path_' . $type, '');
   return !empty($script_path);
 }
-
-function spinoff_get_log_filepath($node) {
-  return sprintf(variable_get('spinoff_log_path_' . $node->type, '%d'), $node->nid);
-}
-
