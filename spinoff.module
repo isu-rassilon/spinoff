@@ -176,6 +176,7 @@ function spinoff_form_node_form_alter(&$form, &$form_state, $form_id) {
   if (!isset($node->nid)) {
     $types = node_type_get_types();
     $form['title']['#value'] = $types[$node->type]->name;
+    $form['path']['alias']['#value'] = $node->type . '/' . hash('sha1', drupal_random_bytes(55));
     $form['actions']['submit']['#submit'][] = 'spinoff_node_form_submit';
   }
 
