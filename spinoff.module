@@ -1,6 +1,6 @@
 <?php
 
-define('SPINOFF_LOG_DIR', 'private://spinoff');
+define('SPINOFF_LOG_DIR', 'private://spinoff/logs');
 define('SPINOFF_LOG_FILE', SPINOFF_LOG_DIR . '/%d.log');
 
 /**

@@ -1,33 +1,6 @@
 <?php
 
 /**
- * Implements hook_requirements().
- */
-function spinoff_requirements($phase) {
-
-  if ($phase == 'install' || $phase == 'runtime') {
-    drupal_load('module', 'spinoff');
-    $directory = SPINOFF_LOG_DIR;
-    $private_files_dir = variable_get('file_private_path', '');
-    if (empty($private_files_dir)) {
-      $requirements['spinoff_private'] = array(
-        'title' => t('Private Files Directory'),
-        'value' => t('Not configured'),
-        'description' =>  t('Spinoff module requires a directory in the private system file. You need to configure the Private file system path in the settings.php file.'),
-        'severity' => REQUIREMENT_ERROR,
-    );
-    }
-    else {
-      $requirements['spinoff_private'] = array(
-        'title' => t('Private Files Directory'),
-        'value' => t('Configured'),
-      );
-    }
-  }
-
-}
-
-/**
  * Implements hook_install().
  */
 function spinoff_install() {
