@@ -164,9 +164,21 @@ function spinoff_log_callback($node) {
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function spinoff_form_node_form_alter(&$form, &$form_state, $form_id) {
-  if (!isset($form_state['node']->nid) && spinoff_is_spinoff_node_type($form_state['node']->type)) {
+
+  $node = $form_state['node'];
+
+  if (!spinoff_is_spinoff_node_type($node->type)) {
+    return;
+  }
+
+  $form['title']['#type'] = 'hidden';
+
+  if (!isset($node->nid)) {
+    $types = node_type_get_types();
+    $form['title']['#value'] = $types[$node->type]->name;
     $form['actions']['submit']['#submit'][] = 'spinoff_node_form_submit';
   }
+
 }
 
 /**
@@ -177,6 +189,8 @@ function spinoff_node_form_submit($form, &$form_state) {
   $node = node_load($form_state['nid']);
 
   $command = spinoff_build_command($node);
+
+  drupal_set_message($command);
 
   exec($command);
 
@@ -191,13 +205,15 @@ function spinoff_build_command($node) {
   foreach (field_info_instances('node', $node->type) as $field_name => $instance) {
     if (!empty($instance['settings']['spinoff_arg_name'])) {
       // TODO: it's not always value
-      $pieces[] = array($instance['settings']['spinoff_arg_name'], escapeshellarg($node->{$field_name}[LANGUAGE_NONE][0]['value']));
+      if (isset($node->{$field_name}[LANGUAGE_NONE][0]['value'])) {
+        $pieces[] = array($instance['settings']['spinoff_arg_name'], escapeshellarg($node->{$field_name}[LANGUAGE_NONE][0]['value']));
+      }
     }
   }
 
   $arguments = implode(' ', array_map(function($piece) { return implode(' ', $piece); }, $pieces));
 
-  $command = 'nohup ' . $script_name . ' ' . $arguments . ' < /dev/null > /dev/null 2>' . sprintf(SPINOFF_LOG_FILE, $node->nid) . ' &';
+  $command = 'nohup ' . $script_name . ' ' . $arguments . ' < /dev/null > /dev/null 2>' . spinoff_get_log_filepath($node) . ' &';
 
   return $command;
 
@@ -261,12 +277,12 @@ function spinoff_preprocess_node(&$variables) {
 
 function spinoff_log($node) {
 
-  // TODO: figure out where to get these
+  // TODO: figure out where to store these
   $job_complete = FALSE;
   $job_error = TRUE;
   $job_log = array('Internal error occurred. Please try submitting the task again or try again later if the problem persists.');
 
-  $log_filepath = sprintf(SPINOFF_LOG_FILE, $node->nid);
+  $log_filepath = spinoff_get_log_filepath($node);
 
   if (file_exists($log_filepath) && $log_file_lines = file($log_filepath)) {
 
@@ -293,3 +309,8 @@ function spinoff_is_spinoff_node_type($type) {
   $script_path = variable_get('spinoff_script_path_' . $type, '');
   return !empty($script_path);
 }
+
+function spinoff_get_log_filepath($node) {
+  return drupal_realpath(sprintf(SPINOFF_LOG_FILE, $node->nid));
+}
+
