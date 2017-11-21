@@ -234,7 +234,7 @@ function spinoff_preprocess_node(&$variables) {
 
     drupal_add_js(drupal_get_path('module', 'spinoff') . '/js/spinoff_collapse.js');
     drupal_add_js(drupal_get_path('module', 'spinoff') . '/js/spinoff_node.js');
-    drupal_add_css(drupal_get_path('module', 'spinoff') . '/css/spinoff.css');
+    drupal_add_css(drupal_get_path('module', 'spinoff') . '/css/spinoff_node.css');
 
     $status_vars = array();
 
