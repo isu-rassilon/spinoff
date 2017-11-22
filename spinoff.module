@@ -391,8 +391,6 @@ function spinoff_get_log_filepath($node) {
  */
 function spinoff_file_init($field_name, $file_extension, &$form, &$form_state) {
 
-  $upload_name = implode('_', $form[$field_name][LANGUAGE_NONE]['0']['#parents']);
-
   //create a placeholder file
   $data = 'Waiting for results.';
   $file = file_save_data($data, 'temporary://');
