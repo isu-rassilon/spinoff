@@ -206,10 +206,43 @@ function spinoff_form_node_form_alter(&$form, &$form_state, $form_id) {
   $form['title']['#type'] = 'hidden';
 
   if (!isset($node->nid)) {
+
     $types = node_type_get_types();
     $form['title']['#value'] = $types[$node->type]->name;
+
     $form['path']['alias']['#value'] = $node->type . '/' . hash('sha1', drupal_random_bytes(55));
+
+    foreach (field_info_instances('node', $node->type) as $field_name => $instance) {
+      if (!empty($instance['settings']['spinoff_field_type']) && $instance['settings']['spinoff_field_type'] === 'output') {
+        hide($form[$field_name]);
+      }
+    }
+
     $form['actions']['submit']['#submit'][] = 'spinoff_node_form_submit';
+
+  }
+
+}
+
+/**
+ * Implements hook_node_validate().
+ */
+function spinoff_node_validate($node, $form, &$form_state) {
+
+  if (!spinoff_is_spinoff_node_type($node->type)) {
+    return;
+  }
+
+  // Cannot proceed without sequences.
+  if (form_get_errors()) {
+    return;
+  }
+
+  foreach (field_info_instances('node', $node->type) as $field_name => $instance) {
+    if (!empty($instance['settings']['spinoff_field_type']) && $instance['settings']['spinoff_field_type'] === 'output') {
+      $file_extensions = explode(',', $instance['settings']['file_extensions']);
+      spinoff_file_init($field_name, $file_extensions[0], $form, $form_state);
+    }
   }
 
 }
@@ -351,5 +384,41 @@ function spinoff_is_spinoff_node_type($type) {
 
 function spinoff_get_log_filepath($node) {
   return drupal_realpath(sprintf(SPINOFF_LOG_FILE, $node->nid));
+}
+
+/**
+ * setup files waiting to be overwritten
+ */
+function spinoff_file_init($field_name, $file_extension, &$form, &$form_state) {
+
+  $upload_name = implode('_', $form[$field_name][LANGUAGE_NONE]['0']['#parents']);
+
+  //create a placeholder file
+  $data = 'Waiting for results.';
+  $file = file_save_data($data, 'temporary://');
+
+  // public:://results
+  $destination = $form[$field_name][LANGUAGE_NONE]['0']['#upload_location'];
+
+  // Append random filename.
+  $destination .= '/' . $file->filename . '.' . $file_extension;
+
+  // Move file into the private file area.
+  $file_moved = file_move($file, $destination);
+  if ($file_moved === FALSE) {
+    watchdog('spinoff', 'Destination directory %dir does not exist or is not writable', array('%dir' => $destination));
+  }
+
+  // Now to convince Drupal this is a managed file.
+  $file_final = file_save($file_moved);
+
+  // Munge $form_state['values'] to include the fid.
+  $form_state['values'][$field_name][LANGUAGE_NONE][0]['fid'] = $file_final->fid;
+
+  // Hiding fields by setting ['#access'] to FALSE inexplicably sets
+  // field value 'display' to false which causes a PDO error. Overriding
+  // the false value here and setting it to 0 (since PDO expects an integer)
+  // fixes that, but this is a hack for sure.
+  $form_state['values'][$field_name][LANGUAGE_NONE][0]['display'] = 0;
 }
 
