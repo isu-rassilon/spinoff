@@ -114,6 +114,17 @@ function spinoff_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form
       '#default_value' => (isset($instance['settings']['spinoff_arg_name'])) ? $instance['settings']['spinoff_arg_name'] : '',
       '#required' => TRUE,
     );
+    $form['instance']['settings']['spinoff']['spinoff_field_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Field type'),
+      '#description' => t('Is this an input or an output field?'),
+      '#empty_option' => '- N/A -',
+      '#options' => array(
+        'input' => 'Input File',
+        'output' => 'Output File',
+      ),
+      '#default_value' => (isset($instance['settings']['spinoff_field_type'])) ? $instance['settings']['spinoff_field_type'] : NULL,
+    );
   }
 }
 
@@ -155,6 +166,27 @@ function spinoff_log_callback($node) {
       ),
     ),
   );
+
+  if ($job_complete) {
+
+    foreach (field_info_instances('node', $node->type) as $field_name => $instance) {
+
+      if (!empty($instance['settings']['spinoff_field_type']) && $instance['settings']['spinoff_field_type'] === 'output') {
+
+        $field_render_array = field_view_field('node', $node, $field_name);
+
+        $return['#commands'][] = array(
+          'command' => 'insert',
+          'method' => 'append',
+          'data' => drupal_render($field_render_array),
+          'selector' => '.node > .content',
+        );
+
+      }
+
+    }
+
+  }
 
   return $return;
 
@@ -254,6 +286,12 @@ function spinoff_preprocess_node(&$variables) {
     $variables['content']['#prefix'] = theme('spinoff_status', $status_vars);
 
     if(!$status_vars['job_complete'] && !$status_vars['job_error']) {
+
+      foreach (field_info_instances('node', $node->type) as $field_name => $instance) {
+        if (!empty($instance['settings']['spinoff_field_type']) && $instance['settings']['spinoff_field_type'] === 'output') {
+          hide($variables['content'][$field_name]);
+        }
+      }
 
       $base = 'spinoff-status';
 
