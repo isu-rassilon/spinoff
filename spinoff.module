@@ -415,10 +415,5 @@ function spinoff_file_init($field_name, $file_extension, &$form, &$form_state) {
   // Munge $form_state['values'] to include the fid.
   $form_state['values'][$field_name][LANGUAGE_NONE][0]['fid'] = $file_final->fid;
 
-  // Hiding fields by setting ['#access'] to FALSE inexplicably sets
-  // field value 'display' to false which causes a PDO error. Overriding
-  // the false value here and setting it to 0 (since PDO expects an integer)
-  // fixes that, but this is a hack for sure.
-  $form_state['values'][$field_name][LANGUAGE_NONE][0]['display'] = 0;
 }
 
